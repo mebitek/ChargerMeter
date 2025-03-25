@@ -138,13 +138,13 @@ def main():
         deviceinstance=293,
         paths={
 
-            '/State': {'initial': 3},
-            '/Mode': {'initial': 1},
+            '/State': {'initial': 0},
+            '/Mode': {'initial': 4},
 
-            '/Dc/0/Voltage': {'initial': 12.8}, #OK
-            '/Dc/0/Current': {'initial': 14.8},
-            '/Dc/0/Temperature': {'initial': 18},
-            '/Dc/0/Power': {'initial': 189},
+            '/Dc/0/Voltage': {'initial': None}, #OK
+            '/Dc/0/Current': {'initial': None},
+            '/Dc/0/Temperature': {'initial': None},
+            '/Dc/0/Power': {'initial': None},
             #'/History/EnergyOut': {'initial': 10},
 
 
