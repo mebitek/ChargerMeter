@@ -68,6 +68,7 @@ class ChargerMeterService:
         has_charger = device in dbus_conn.list_names()
 
         if has_charger:
+            self._dbusservice['/Connected'] = 1
             current = VeDbusItemImport(dbus_conn, device, '/Dc/0/Current')
             voltage = VeDbusItemImport(dbus_conn, device, '/Dc/0/Voltage')
             state = VeDbusItemImport(dbus_conn, device, '/State')
