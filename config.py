@@ -22,6 +22,9 @@ class ChargerConfig:
         else:
             return False
 
+    def get_product_name(self):
+        return self.config.get("Setup", "name", fallback="Virtual AC Charger Meter")
+
     @staticmethod
     def get_version():
         with open("%s/version" % (os.path.dirname(os.path.realpath(__file__))), 'r') as file:

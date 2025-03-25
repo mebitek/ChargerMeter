@@ -2,10 +2,8 @@
 
 import os
 import sys
-import json
 import logging
 import dbus
-import requests
 import _thread as thread
 
 from config import ChargerConfig
@@ -14,48 +12,49 @@ from config import ChargerConfig
 sys.path.insert(1, "/data/SetupHelper/velib_python")
 
 from vedbus import VeDbusService, VeDbusItemImport
-from vreg_link_item import VregLinkItem, GenericReg
+from vreg_link_item import VregLinkItem, GenericReg, ChargerReg
 
 from gi.repository import GLib
 
 
 class ChargerMeterService:
 
-    def __init__(self, servicename, deviceinstance, paths, productname='Virtual AC Charger Meter', connection='MQTT',
-                 config=None):
+    def __init__(self, servicename, deviceinstance, paths, connection='USB', config=None):
         self.config = config or ChargerConfig()
         self._dbusservice = VeDbusService(servicename, register=False)
         self._paths = paths
 
+        product_name = self.config.get_product_name()
+
         vregtype = lambda *args, **kwargs: VregLinkItem(*args, **kwargs,
-                                                        getvreg=self.vreglink_get, setvreg=self.vreglink_set)
+                                                        getvreg=self.vreg_link_get, setvreg=self.vreg_link_set)
 
         self._dbusservice.add_path('/Mgmt/ProcessName', __file__)
-        self._dbusservice.add_path('/Mgmt/ProcessVersion', "v0.1")
+        self._dbusservice.add_path('/Mgmt/ProcessVersion', self.config.get_version())
         self._dbusservice.add_path('/Mgmt/Connection', connection)
 
         # Create the mandatory objects
         self._dbusservice.add_path('/DeviceInstance', deviceinstance)
         # value used in ac_sensor_bridge.cpp of dbus-cgwacs
         self._dbusservice.add_path('/ProductId', 0xA389)
-        self._dbusservice.add_path('/ProductName', productname)
-        self._dbusservice.add_path('/DeviceName', productname)
+        self._dbusservice.add_path('/ProductName', product_name)
+        self._dbusservice.add_path('/DeviceName', product_name)
         self._dbusservice.add_path('/FirmwareVersion', 0x0416)
         self._dbusservice.add_path('/Connected', 1)
         self._dbusservice.add_path('/Serial', "HQ2084P4XX")
 
-        self._dbusservice.add_path('/Devices/0/CustomName', productname)
+        self._dbusservice.add_path('/Devices/0/CustomName', product_name)
         self._dbusservice.add_path('/Devices/0/DeviceInstance', deviceinstance)
         self._dbusservice.add_path('/Devices/0/FirmwareVersion', 0x0416)
         self._dbusservice.add_path('/Devices/0/ProductId', 0xA389)
-        self._dbusservice.add_path('/Devices/0/ProductName', "Virtual AC Energy Meter")
+        self._dbusservice.add_path('/Devices/0/ProductName', "SmartShunt 300A/50mV")
         self._dbusservice.add_path('/Devices/0/ServiceName', servicename)
         self._dbusservice.add_path('/Devices/0/Serial', "HQ2084P4XX")
         self._dbusservice.add_path('/Devices/0/VregLink', None, itemtype=vregtype)
 
         for path, settings in self._paths.items():
-                self._dbusservice.add_path(
-                    path, settings['initial'], writeable=True, onchangecallback=self._handlechangedvalue)
+            self._dbusservice.add_path(
+                path, settings['initial'], writeable=True, onchangecallback=self._handle_changed_value)
 
         self._dbusservice.register()
         GLib.timeout_add(1000, self._update)
@@ -69,6 +68,7 @@ class ChargerMeterService:
 
         if has_charger:
             self._dbusservice['/Connected'] = 1
+            self._dbusservice['/Mode'] = 1
             current = VeDbusItemImport(dbus_conn, device, '/Dc/0/Current')
             voltage = VeDbusItemImport(dbus_conn, device, '/Dc/0/Voltage')
             state = VeDbusItemImport(dbus_conn, device, '/State')
@@ -102,21 +102,22 @@ class ChargerMeterService:
         self._dbusservice['/Dc/0/Power'] = None
         self._dbusservice['/Dc/0/Temperature'] = None
 
-
-    def _handlechangedvalue(self, path, value):
+    @staticmethod
+    def _handle_changed_value(self, path, value):
         return True
 
-    def vreglink_get(self, regid):
-        if regid == 0xEEB8:
-            logging.info("vreglink_get %s" % regid)
+    @staticmethod
+    def vreg_link_get(reg_id):
+        if reg_id == ChargerReg.DC_MONITOR_MODE:
             return GenericReg.OK.value, [0xFE]
         return GenericReg.OK.value, []
 
-    def vreglink_set(self, regid, data):
+    @staticmethod
+    def vreg_link_set(reg_id, data):
         return GenericReg.OK.value, data
 
-def main():
 
+def main():
     config = ChargerConfig()
 
     # set logging level to include info level entries
@@ -134,7 +135,7 @@ def main():
     # Have a mainloop, so we can send/receive asynchronous calls to and from dbus
     DBusGMainLoop(set_as_default=True)
 
-    pvac_output = ChargerMeterService(
+    service = ChargerMeterService(
         servicename='com.victronenergy.dcsource.ip22',
         deviceinstance=293,
         paths={
@@ -142,12 +143,11 @@ def main():
             '/State': {'initial': 0},
             '/Mode': {'initial': 4},
 
-            '/Dc/0/Voltage': {'initial': None}, #OK
+            '/Dc/0/Voltage': {'initial': None},  # OK
             '/Dc/0/Current': {'initial': None},
             '/Dc/0/Temperature': {'initial': None},
             '/Dc/0/Power': {'initial': None},
-            #'/History/EnergyOut': {'initial': 10},
-
+            '/History/EnergyOut': {'initial': None},
 
             '/Settings/DeviceFunction': {'initial': 0},
             '/Settings/MonitorMode': {'initial': -2},
