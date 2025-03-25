@@ -41,9 +41,8 @@ class ChargerMeterService:
         self._dbusservice.add_path('/ProductName', productname)
         self._dbusservice.add_path('/DeviceName', productname)
         self._dbusservice.add_path('/FirmwareVersion', 0x0416)
-        self._dbusservice.add_path('/HardwareVersion', 8)
         self._dbusservice.add_path('/Connected', 1)
-        self._dbusservice.add_path('/Serial', "xxxx")
+        self._dbusservice.add_path('/Serial', "HQ2084P4XX")
 
         self._dbusservice.add_path('/Devices/0/CustomName', productname)
         self._dbusservice.add_path('/Devices/0/DeviceInstance', deviceinstance)
@@ -51,7 +50,7 @@ class ChargerMeterService:
         self._dbusservice.add_path('/Devices/0/ProductId', 0xA389)
         self._dbusservice.add_path('/Devices/0/ProductName', "Virtual AC Energy Meter")
         self._dbusservice.add_path('/Devices/0/ServiceName', servicename)
-        self._dbusservice.add_path('/Devices/0/Serial', "xxxx")
+        self._dbusservice.add_path('/Devices/0/Serial', "HQ2084P4XX")
         self._dbusservice.add_path('/Devices/0/VregLink', None, itemtype=vregtype)
 
         for path, settings in self._paths.items():
@@ -136,7 +135,7 @@ def main():
 
     pvac_output = ChargerMeterService(
         servicename='com.victronenergy.dcsource.ip22',
-        deviceinstance=52,
+        deviceinstance=290,
         paths={
 
             '/State': {'initial': 3},
