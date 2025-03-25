@@ -1,0 +1,19 @@
+#!/bin/bash
+
+# setup Shutdown Monitor mechanism
+# Venus OS provides a restart command but not a shutdown command
+# This modificaiton adds a shutdown command to the Device List / Settings / General menu
+#
+#	for RPI only a GPIO pin can also trigger shutdown
+
+# tell CommonResources to:
+#	prompt for install/uninstall
+#	auto install or auto uninstall
+#	then exit
+#	IncludeHelpers will NOT return here !
+
+standardPromptAndActions='yes'
+
+#### following line incorporates helper resources into this script
+source "/data/SetupHelper/HelperResources/IncludeHelpers"
+#### end of lines to include helper resources
