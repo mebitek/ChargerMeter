@@ -135,7 +135,7 @@ def main():
 
     pvac_output = ChargerMeterService(
         servicename='com.victronenergy.dcsource.ip22',
-        deviceinstance=290,
+        deviceinstance=291,
         paths={
 
             '/State': {'initial': 3},
