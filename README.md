@@ -2,6 +2,9 @@
 This service emulates a smart shunt configured as energy meter and display the data that comes from a configured dbus ac charger.
 It is useful if you have and hacked Victron IP22 Smart Charger
 
+![Screenshot 2025-03-25-17-29-36](https://github.com/user-attachments/assets/efbf8796-b063-48a2-8c3d-06462022adef)
+
+
 ### Refrences
 * [Venus Wiki](https://github.com/victronenergy/venus/wiki/dbus#temperature)
 * [IP22 Hack](https://github.com/pvtex/Victron_BlueSmart_IP22)
