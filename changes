@@ -1,2 +1,5 @@
+v1.0.0:
+    - final testing
+    - as the usb port has assigned differently each rebot a mechanism to discover the current port has been provided
 v0.0.1:
     - initial version

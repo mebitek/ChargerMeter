@@ -1,4 +1,4 @@
-# venus.ChargeMeter v0.0.1
+# venus.ChargeMeter v1.0.0
 This service emulates a smart shunt configured as energy meter and display the data that comes from a configured dbus ac charger.
 It is useful if you have and hacked Victron IP22 Smart Charger
 

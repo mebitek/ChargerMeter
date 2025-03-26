@@ -23,6 +23,7 @@ class ChargerMeterService:
         self.config = config or ChargerConfig()
         self._dbusservice = VeDbusService(servicename, register=False)
         self._paths = paths
+        self.device = self.config.get_device()
 
         product_name = self.config.get_product_name()
 
@@ -63,16 +64,15 @@ class ChargerMeterService:
 
         dbus_conn = dbus.SessionBus() if 'DBUS_SESSION_BUS_ADDRESS' in os.environ else dbus.SystemBus()
 
-        device = self.config.get_device()
-        has_charger = device in dbus_conn.list_names()
+        has_charger = self.device in dbus_conn.list_names()
 
         if has_charger:
             self._dbusservice['/Connected'] = 1
             self._dbusservice['/Mode'] = 1
-            current = VeDbusItemImport(dbus_conn, device, '/Dc/0/Current')
-            voltage = VeDbusItemImport(dbus_conn, device, '/Dc/0/Voltage')
-            state = VeDbusItemImport(dbus_conn, device, '/State')
-            temperature = VeDbusItemImport(dbus_conn, device, '/Dc/0/Temperature')
+            current = VeDbusItemImport(dbus_conn, self.device, '/Dc/0/Current')
+            voltage = VeDbusItemImport(dbus_conn, self.device, '/Dc/0/Voltage')
+            state = VeDbusItemImport(dbus_conn, self.device, '/State')
+            temperature = VeDbusItemImport(dbus_conn, self.device, '/Dc/0/Temperature')
 
             if current is not None and current.get_value() is not None:
                 self._dbusservice['/Dc/0/Voltage'] = voltage.get_value()
@@ -83,6 +83,10 @@ class ChargerMeterService:
             else:
                 self.set_disconnected()
         else:
+            for d in dbus_conn.list_names():
+                if d.startswith('com.victronenergy.charger.ttyUSB'):
+                    self.device = d
+                    break;
             self.set_disconnected()
 
         index = self._dbusservice['/UpdateIndex'] + 1  # increment index
