@@ -61,33 +61,35 @@ class ChargerMeterService:
         GLib.timeout_add(1000, self._update)
 
     def _update(self):
+        try:
+            dbus_conn = dbus.SessionBus() if 'DBUS_SESSION_BUS_ADDRESS' in os.environ else dbus.SystemBus()
 
-        dbus_conn = dbus.SessionBus() if 'DBUS_SESSION_BUS_ADDRESS' in os.environ else dbus.SystemBus()
+            has_charger = self.device in dbus_conn.list_names()
 
-        has_charger = self.device in dbus_conn.list_names()
+            if has_charger:
+                self._dbusservice['/Connected'] = 1
+                self._dbusservice['/Mode'] = 1
+                current = VeDbusItemImport(dbus_conn, self.device, '/Dc/0/Current')
+                voltage = VeDbusItemImport(dbus_conn, self.device, '/Dc/0/Voltage')
+                state = VeDbusItemImport(dbus_conn, self.device, '/State')
+                temperature = VeDbusItemImport(dbus_conn, self.device, '/Dc/0/Temperature')
 
-        if has_charger:
-            self._dbusservice['/Connected'] = 1
-            self._dbusservice['/Mode'] = 1
-            current = VeDbusItemImport(dbus_conn, self.device, '/Dc/0/Current')
-            voltage = VeDbusItemImport(dbus_conn, self.device, '/Dc/0/Voltage')
-            state = VeDbusItemImport(dbus_conn, self.device, '/State')
-            temperature = VeDbusItemImport(dbus_conn, self.device, '/Dc/0/Temperature')
-
-            if current is not None and current.get_value() is not None:
-                self._dbusservice['/Dc/0/Voltage'] = voltage.get_value()
-                self._dbusservice['/Dc/0/Current'] = current.get_value()
-                self._dbusservice['/Dc/0/Power'] = current.get_value() * voltage.get_value()
-                self._dbusservice['/Dc/0/Temperature'] = temperature.get_value()
-                self._dbusservice['/State'] = state.get_value()
+                if current is not None and current.get_value() is not None:
+                    self._dbusservice['/Dc/0/Voltage'] = voltage.get_value()
+                    self._dbusservice['/Dc/0/Current'] = current.get_value()
+                    self._dbusservice['/Dc/0/Power'] = current.get_value() * voltage.get_value()
+                    self._dbusservice['/Dc/0/Temperature'] = temperature.get_value()
+                    self._dbusservice['/State'] = state.get_value()
+                else:
+                    self.set_disconnected()
             else:
+                for d in dbus_conn.list_names():
+                    if d.startswith('com.victronenergy.charger.ttyUSB'):
+                        self.device = d
+                        break;
                 self.set_disconnected()
-        else:
-            for d in dbus_conn.list_names():
-                if d.startswith('com.victronenergy.charger.ttyUSB'):
-                    self.device = d
-                    break;
-            self.set_disconnected()
+        except Exception:
+            logging.exception("Failed to update charger meter")
 
         index = self._dbusservice['/UpdateIndex'] + 1  # increment index
         if index > 255:  # maximum value of the index
