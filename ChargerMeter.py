@@ -64,7 +64,11 @@ class ChargerMeterService:
         try:
             dbus_conn = dbus.SessionBus() if 'DBUS_SESSION_BUS_ADDRESS' in os.environ else dbus.SystemBus()
 
+            logging.debug("* * * Device %s" % self.device)
+
             has_charger = self.device in dbus_conn.list_names()
+
+            logging.debug("* * * Has cahrger: %s" % has_charger)
 
             if has_charger:
                 self._dbusservice['/Connected'] = 1
