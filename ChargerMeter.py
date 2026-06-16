@@ -79,8 +79,8 @@ class ChargerMeterService:
                 temperature = VeDbusItemImport(dbus_conn, self.device, '/Dc/0/Temperature')
 
                 if current is not None and current.get_value() is not None:
-                    self._dbusservice['/Dc/0/Voltage'] = voltage.get_value()
-                    self._dbusservice['/Dc/0/Current'] = current.get_value()
+                    self._dbusservice['/Dc/0/Voltage'] = round(voltage.get_value(), 2)
+                    self._dbusservice['/Dc/0/Current'] = rount(current.get_value(), 2)
                     self._dbusservice['/Dc/0/Power'] = current.get_value() * voltage.get_value()
                     self._dbusservice['/Dc/0/Temperature'] = temperature.get_value()
                     self._dbusservice['/State'] = state.get_value()

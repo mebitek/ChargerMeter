@@ -1,3 +1,5 @@
+v1.0.2:
+    - round voltage and current to 2 decimal digits
 v1.0.1:
     - update firmware version
 v1.0.0:
