@@ -80,8 +80,8 @@ class ChargerMeterService:
 
                 if current is not None and current.get_value() is not None:
                     self._dbusservice['/Dc/0/Voltage'] = round(voltage.get_value(), 2)
-                    self._dbusservice['/Dc/0/Current'] = rount(current.get_value(), 2)
-                    self._dbusservice['/Dc/0/Power'] = current.get_value() * voltage.get_value()
+                    self._dbusservice['/Dc/0/Current'] = round(current.get_value(), 2)
+                    self._dbusservice['/Dc/0/Power'] = round(current.get_value() * voltage.get_value(), 2)
                     self._dbusservice['/Dc/0/Temperature'] = temperature.get_value()
                     self._dbusservice['/State'] = state.get_value()
                 else:
